@@ -1,29 +1,109 @@
-<html>
-    <body>
-    
-        <h2>Argon BLE WiFi Configuration</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ambee Device WiFi Configuration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
 
-        <form id="form_connect">
-            <input id="connect_btn" type="submit" value="Connect to Argon">
-        </form>
+        h2 {
+            color: #2c3e50;
+        }
 
-        <form id="form_wifi_scan" style="display: none">
-            <input id="wifi_scan_btn" type="submit" value="Scan for Networks" disabled>
-        </form>
+        form {
+            background-color: #fff;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
 
-        <form id="form_wifi_config" style="display: none">
-            <p>Network: <select id="ssid" size=1 placeholder="WiFi SSID" style="min-width: 150px;" disabled></select></p>
-            <p id="password_p">Password: <input id="password" type="password" size=17 placeholder="Password" disabled></p>
-            <p><input id="submit_credentials_btn" type="submit" value="Connect to Network" disabled></p>
-        </form>
-    
-        <h3>Log</h3>
-        <div id="output" class="output" style="border:1px">
-            <pre id="log"></pre>
-        </div> 
+        input[type="submit"], select, input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
 
-        <script>
+        input[type="submit"] {
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
 
+        input[type="submit"]:hover {
+            background-color: #2980b9;
+        }
+
+        select {
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+
+        #output {
+            background-color: #f4f7f9;
+            padding: 10px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        pre {
+            margin: 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        #password_p {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Ambee Device WiFi Configuration</h2>
+
+    <form id="form_connect">
+        <input id="connect_btn" type="submit" value="Connect to Ambee Device">
+    </form>
+
+    <form id="form_wifi_scan" style="display: none;">
+        <input id="wifi_scan_btn" type="submit" value="Scan for Networks" disabled>
+    </form>
+
+    <form id="form_wifi_config" style="display: none;">
+        <p>Network: <select id="ssid" size=1 placeholder="WiFi SSID" disabled></select></p>
+        <p id="password_p">Password: <input id="password" type="password" size=17 placeholder="Password" disabled></p>
+        <p><input id="submit_credentials_btn" type="submit" value="Connect to Network" disabled></p>
+    </form>
+
+    <h3>Log</h3>
+    <div id="output" class="output">
+        <pre id="log"></pre>
+    </div>
+
+    <script>
         var Logger = {
             log: function() {
                 var line = Array.prototype.slice.call(arguments).map(function(argument) {
@@ -52,16 +132,13 @@
                 argon_ble_device.gatt.getPrimaryService(uuid_wifi_config_service)
                 // Set up notifications
                 .then(service => {
-                    // Logger.log('Getting WiFi Configuration Service...');
                     service.getCharacteristic(uuid_wifi_config_rx)
                     .then(characteristic => {
                         characteristic.startNotifications();
-                        // Logger.log('RX notifications enabled');
                         return characteristic;
                     })
                     .then(characteristic => {
                         characteristic.addEventListener('characteristicvaluechanged', rxDataHandler);
-                        // Logger.log('Added \'rx\' service listener');
                     })
                     .catch(error => {
                         Logger.log('Argh! ' + error);
@@ -81,13 +158,12 @@
                     var bytes = encoder.encode(message_str);
                     Logger.log('TX: ' + JSON.stringify(scan_msg));
                     return characteristic.writeValue(bytes);
-                    // return characteristic.writeValue(cmd_wifi_scan)
                 })
                 .catch(error => {
                     Logger.log('Argh! ' + error);
                 })
             } else {
-            Logger.log('Not connected to Argon!');
+            Logger.log('Not connected to Ambee Device!');
             }
         }
 
@@ -114,7 +190,7 @@
                     Logger.log('Argh! ' + error);
                 })
             } else {
-            Logger.log('Not connected to Argon!');
+            Logger.log('Not connected to Ambee Device!');
             }
         }
 
@@ -123,8 +199,7 @@
 
             navigator.bluetooth.requestDevice({
                 filters: [{
-                    services: [uuid_wifi_config_service], // Only show Argons that have the WiFi config service enabled (this doesn't work??)
-                    // namePrefix: "Argon",                  // Argons advertise their name as "Argon-XXXXXX"
+                    services: [uuid_wifi_config_service], // Only show devices with WiFi config service enabled
                 }],
             })
             .then(device => {
@@ -138,7 +213,7 @@
                 document.getElementById('form_wifi_scan').style.display = "block";
                 document.getElementById('form_wifi_config').style.display = "block";
                 document.getElementById('wifi_scan_btn').disabled = false;
-                document.getElementById('connect_btn').value = "Disconnect from Argon";
+                document.getElementById('connect_btn').value = "Disconnect from Ambee Device";
             })
             .catch(error => {
                 Logger.log('Argh! ' + error);
@@ -168,12 +243,10 @@
                             ssid_list.appendChild(new Option(ssid_string, obj.ssid));
                             ssids.push(obj);
 
-                            // Hacky fix to only enable SSID and Password fields after we get an SSID response from the Argon
-                            if (ssids.length == 1) {  // Added our first SSID to the list
-                                // Enable SSID and Password fields on the web form
+                            if (ssids.length == 1) {  // Added first SSID to the list
                                 document.getElementById('ssid').disabled = false;
                                 document.getElementById('password').disabled = false;
-                                document.getElementById('ssid').dispatchEvent(new Event('change')); // Force update the submit button
+                                document.getElementById('ssid').dispatchEvent(new Event('change'));
                             }
                         }
                     } else {
@@ -192,105 +265,3 @@
             resetUI();
         }
 
-        function resetUI() {
-            document.getElementById('form_wifi_scan').style.display = "none";
-            document.getElementById('form_wifi_config').style.display = "none";
-            
-            document.getElementById('ssid').disabled = true;
-            document.getElementById('password').disabled = true;
-            document.getElementById('submit_credentials_btn').disabled = true;
-            document.getElementById('wifi_scan_btn').disabled = true;
-            
-            // Clear SSID list
-            var ssid_list = document.getElementById("ssid");
-            while (ssid_list.firstChild) {
-                ssid_list.removeChild(ssid_list.firstChild);
-            }
-
-            var password = document.getElementById("password");
-            password.value = "";
-
-            document.getElementById('connect_btn').value = "Connect to Argon";
-
-            ssids = [];
-        }
-
-        // Connect to Argon button handler
-        document.querySelector('#form_connect').addEventListener('submit', function(event) {
-            event.stopPropagation();
-            event.preventDefault();
-
-            if (navigator.bluetooth) {
-                if (argon_ble_device) {
-                    // Disconnect
-                    onDisconnectButtonClick();
-                } else {
-                    // Connect
-                    Logger.clearLog();
-                    onConnectButtonClick();
-                }
-            } else {
-                Logger.log('Error: Web Bluetooth API is not available. Please make sure the "Experimental Web Platform features" flag is enabled.');
-            }
-        });
-
-        // Scan for networks button handler
-        document.querySelector('#form_wifi_scan').addEventListener('submit', function(event) {
-            event.stopPropagation();
-            event.preventDefault();
-
-            // Reset UI State if button is clicked (don't want to duplicate networks)
-            document.getElementById('ssid').disabled = true;
-            document.getElementById('password').disabled = true;
-            document.getElementById('submit_credentials_btn').disabled = true;
-
-            // Clear list
-            var ssid_list = document.getElementById("ssid");
-            while (ssid_list.firstChild) {
-                ssid_list.removeChild(ssid_list.firstChild);
-            }
-
-            ssids = [];
-
-            var password = document.getElementById("password");
-            password.value = "";
-
-            onScanButtonClick();
-        });
-
-        // Submit credentials button handler
-        document.querySelector('#form_wifi_config').addEventListener('submit', function(event) {
-            event.stopPropagation();
-            event.preventDefault();
-            onSubmitCredentialsButtonClick();
-        });
-
-        // Handler to only enable submit credentials button when password length >0
-        document.getElementById('password').addEventListener('input', function(event) {
-            if (document.getElementById('ssid').options.length > 0 && document.getElementById('password').value.length > 0) {
-                document.getElementById('submit_credentials_btn').disabled = false;
-            } else {
-                document.getElementById('submit_credentials_btn').disabled = true;
-            }
-        });
-
-        document.getElementById('ssid').addEventListener('change', function(event) {
-            var selected_ssid = ssids[event.target.options.selectedIndex];
-            if (selected_ssid.sec == "Unsecured") {
-                document.getElementById('submit_credentials_btn').disabled = false;
-                document.getElementById('password_p').style.display = "none";
-                document.getElementById('password').value = "";
-            } else {
-                document.getElementById('password_p').style.display = "block";
-                if (document.getElementById('ssid').options.length > 0 && document.getElementById('password').value.length > 0) {
-                    document.getElementById('submit_credentials_btn').disabled = false;
-                } else {
-                    document.getElementById('submit_credentials_btn').disabled = true;
-                }
-            }
-        });
-
-        </script>
-    </body>
-</html>
-  
