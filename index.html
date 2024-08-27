@@ -58,7 +58,7 @@
             margin-bottom: 10px;
         }
 
-        #output {
+        #output-container {
             background-color: #fff;
             padding: 15px;
             border-radius: 10px;
@@ -66,6 +66,11 @@
             max-width: 450px;
             box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
             margin-top: 20px;
+        }
+
+        #output {
+            display: none;
+            margin-top: 10px;
         }
 
         pre {
@@ -77,6 +82,23 @@
 
         #password_p {
             display: none;
+        }
+
+        .toggle-button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            text-align: center;
+            transition: background-color 0.3s ease;
+            width: 100%;
+        }
+
+        .toggle-button:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
@@ -98,12 +120,26 @@
         <p><input id="submit_credentials_btn" type="submit" value="Connect to Network" disabled></p>
     </form>
 
-    <h3>Log</h3>
-    <div id="output" class="output">
-        <pre id="log"></pre>
+    <div id="output-container">
+        <button class="toggle-button" onclick="toggleLog()">Show Log</button>
+        <div id="output" class="output">
+            <pre id="log"></pre>
+        </div>
     </div>
 
     <script>
+        function toggleLog() {
+            const outputDiv = document.getElementById('output');
+            const toggleButton = document.querySelector('.toggle-button');
+            if (outputDiv.style.display === 'none') {
+                outputDiv.style.display = 'block';
+                toggleButton.textContent = 'Hide Log';
+            } else {
+                outputDiv.style.display = 'none';
+                toggleButton.textContent = 'Show Log';
+            }
+        }
+
         var Logger = {
             log: function() {
                 var line = Array.prototype.slice.call(arguments).map(function(argument) {
